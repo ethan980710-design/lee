@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>가위바위보 게임</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(102, 178, 255, 0.35), transparent 28%),
+          linear-gradient(135deg, #f5f8ff 0%, #e7f2ff 45%, #dcefff 100%);
+        color: #183153;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+      }
+
+      .game-box {
+        width: min(92vw, 500px);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(131, 168, 224, 0.35);
+        border-radius: 28px;
+        box-shadow: 0 20px 50px rgba(24, 49, 83, 0.16);
+        padding: 28px 24px 24px;
+        text-align: center;
+        backdrop-filter: blur(12px);
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: 30px;
+        letter-spacing: -0.02em;
+      }
+
+      .subtitle {
+        margin: 0 0 22px;
+        color: #5b6d86;
+        line-height: 1.5;
+      }
+
+      .opponent-area {
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 24px;
+        border-radius: 22px;
+        background: linear-gradient(145deg, #f7fbff, #eaf4ff);
+        padding: 20px 16px;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .opponent-area::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgba(78, 138, 255, 0.16), transparent 60%);
+        pointer-events: none;
+      }
+
+      .effect-layer {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      .effect-layer.win {
+        animation: winEffect 1.8s ease forwards;
+      }
+
+      .effect-layer.lose {
+        animation: loseEffect 1.9s ease forwards;
+      }
+
+      .effect-icon {
+        font-size: 70px;
+        position: absolute;
+        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+      }
+
+      .effect-layer.win .effect-icon {
+        animation: crackPop 1.8s ease forwards;
+      }
+
+      .effect-layer.lose .effect-icon {
+        animation: laughPop 1.9s ease forwards;
+      }
+
+      .effect-layer .effect-icon.second {
+        font-size: 48px;
+        margin-top: 70px;
+        margin-left: 70px;
+      }
+
+      .game-box.win-effect {
+        animation: cardBreak 1.2s ease;
+      }
+
+      .game-box.lose-effect {
+        animation: cardLaugh 1.3s ease;
+      }
+
+      .label {
+        font-size: 14px;
+        color: #667690;
+        margin-bottom: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .choice-display {
+        font-size: 54px;
+        line-height: 1;
+        min-height: 88px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.35;
+        transform: scale(0.7);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        text-shadow: 0 8px 20px rgba(24, 49, 83, 0.12);
+      }
+
+      .choice-display.revealed {
+        opacity: 1;
+        transform: scale(1.08);
+        animation: popIn 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      }
+
+      @keyframes popIn {
+        0% {
+          transform: scale(0.5);
+          opacity: 0.2;
+        }
+        100% {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+      }
+
+      @keyframes winEffect {
+        0% {
+          opacity: 0;
+          transform: scale(0.7);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1.02);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.12);
+        }
+      }
+
+      @keyframes loseEffect {
+        0% {
+          opacity: 0;
+          transform: scale(0.8) rotate(-3deg);
+        }
+        45% {
+          opacity: 1;
+          transform: scale(1.05) rotate(2deg);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.15) rotate(6deg);
+        }
+      }
+
+      @keyframes crackPop {
+        0% {
+          transform: scale(0.4) rotate(-8deg);
+          opacity: 0;
+        }
+        60% {
+          transform: scale(1.15) rotate(6deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.2) rotate(12deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes laughPop {
+        0% {
+          transform: scale(0.5) translateY(0);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.1) translateY(-10px);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.2) translateY(-25px);
+          opacity: 0;
+        }
+      }
+
+      @keyframes cardBreak {
+        0%, 100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-4px) rotate(-1deg);
+        }
+        50% {
+          transform: translateX(4px) rotate(1deg);
+        }
+        75% {
+          transform: translateX(-2px) rotate(-0.5deg);
+        }
+      }
+
+      @keyframes cardLaugh {
+        0%, 100% {
+          transform: translateY(0);
+        }
+        30% {
+          transform: translateY(-5px) rotate(-1.5deg);
+        }
+        60% {
+          transform: translateY(4px) rotate(1deg);
+        }
+      }
+
+      .status {
+        margin-top: 12px;
+        font-size: 18px;
+        font-weight: 800;
+        min-height: 28px;
+        color: #2954a8;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 8px 12px;
+        border-radius: 999px;
+      }
+
+      .choices {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .choice-btn {
+        border: none;
+        border-radius: 16px;
+        padding: 14px 10px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        color: white;
+        background: linear-gradient(135deg, #3d7cff 0%, #2d6cdf 100%);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 10px 22px rgba(45, 108, 223, 0.24);
+      }
+
+      .choice-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 24px rgba(45, 108, 223, 0.28);
+      }
+
+      .choice-btn:active {
+        transform: translateY(1px);
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="game-box">
+      <h1>가위바위보 게임</h1>
+      <p class="subtitle">상대의 선택이 위쪽에 표시되고, 아래에서 내 선택을 고르세요.</p>
+
+      <div class="opponent-area">
+        <div id="effectLayer" class="effect-layer"></div>
+        <div class="label">상대</div>
+        <div id="opponentChoice" class="choice-display">?</div>
+        <div id="resultText" class="status">준비되었습니다.</div>
+      </div>
+
+      <div class="choices">
+        <button class="choice-btn" data-choice="가위">가위 ✌️</button>
+        <button class="choice-btn" data-choice="바위">바위 ✊</button>
+        <button class="choice-btn" data-choice="보">보 🖐️</button>
+      </div>
+    </div>
+
+    <script>
+      const choices = ["가위", "바위", "보"];
+      const choiceEmojis = {
+        가위: "✌️",
+        바위: "✊",
+        보: "🖐️",
+      };
+
+      const opponentChoiceEl = document.getElementById("opponentChoice");
+      const resultTextEl = document.getElementById("resultText");
+      const effectLayer = document.getElementById("effectLayer");
+      const gameBox = document.querySelector(".game-box");
+      const buttons = document.querySelectorAll(".choice-btn");
+      let isResolving = false;
+
+      function getRandomChoice() {
+        const index = Math.floor(Math.random() * choices.length);
+        return choices[index];
+      }
+
+      function setButtonsEnabled(enabled) {
+        buttons.forEach((button) => {
+          button.disabled = !enabled;
+          button.style.opacity = enabled ? "1" : "0.6";
+          button.style.cursor = enabled ? "pointer" : "default";
+        });
+      }
+
+      function revealOpponentChoice(choice) {
+        opponentChoiceEl.textContent = `${choiceEmojis[choice]} ${choice}`;
+        opponentChoiceEl.classList.remove("revealed");
+        void opponentChoiceEl.offsetWidth;
+        opponentChoiceEl.classList.add("revealed");
+      }
+
+      function showEffect(type) {
+        effectLayer.className = `effect-layer ${type}`;
+        if (type === "win") {
+          gameBox.classList.remove("lose-effect");
+          gameBox.classList.add("win-effect");
+          effectLayer.innerHTML = '<div class="effect-icon">💥</div><div class="effect-icon second">🧱</div>';
+        } else if (type === "lose") {
+          gameBox.classList.remove("win-effect");
+          gameBox.classList.add("lose-effect");
+          effectLayer.innerHTML = '<div class="effect-icon">😏</div><div class="effect-icon second">😂</div>';
+        }
+
+        setTimeout(() => {
+          effectLayer.className = "effect-layer";
+          effectLayer.innerHTML = "";
+          gameBox.classList.remove("win-effect", "lose-effect");
+        }, 1900);
+      }
+
+      function resetRound() {
+        opponentChoiceEl.textContent = "?";
+        opponentChoiceEl.classList.remove("revealed");
+        effectLayer.className = "effect-layer";
+        effectLayer.innerHTML = "";
+        gameBox.classList.remove("win-effect", "lose-effect");
+        resultTextEl.textContent = "준비되었습니다.";
+        setButtonsEnabled(true);
+        isResolving = false;
+      }
+
+      function playRound(playerChoice) {
+        if (isResolving) {
+          return;
+        }
+
+        isResolving = true;
+        setButtonsEnabled(false);
+
+        const opponentChoice = getRandomChoice();
+        revealOpponentChoice(opponentChoice);
+
+        if (playerChoice === opponentChoice) {
+          resultTextEl.textContent = "비겼어요!";
+        } else if (
+          (playerChoice === "가위" && opponentChoice === "보") ||
+          (playerChoice === "바위" && opponentChoice === "가위") ||
+          (playerChoice === "보" && opponentChoice === "바위")
+        ) {
+          resultTextEl.textContent = "이겼어요! 상대가 흔들려요.";
+          showEffect("win");
+        } else {
+          resultTextEl.textContent = "졌어요! 상대가 비웃어요.";
+          showEffect("lose");
+        }
+
+        setTimeout(() => {
+          resetRound();
+        }, 1900);
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const playerChoice = button.dataset.choice;
+          playRound(playerChoice);
+        });
+      });
+
+      setButtonsEnabled(true);
+    </script>
+  </body>
+</html>
